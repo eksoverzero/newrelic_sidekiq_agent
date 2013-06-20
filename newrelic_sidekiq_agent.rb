@@ -38,7 +38,7 @@ require 'redis'
 #         # All output goes to stdout/stderr.
 #         verbose: 1
 #       agents:
-#         resque:
+#         sidekiq:
 #            # Redis connection string: 'hostname:port' or 'hostname:port:db' or 'redis://user:password@hostname:port:db'
 #            redis: user:password@localhost:6379
 

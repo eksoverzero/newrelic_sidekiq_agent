@@ -26,7 +26,7 @@ newrelic:
 # Agent Configuration:
 #
 agents:
-  resque:
+  sidekiq:
     # Redis connection string: 'redis://user:password@hostname:port:db'
     redis: redis://localhost:6379
     # Resque namespace
