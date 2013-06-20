@@ -4,6 +4,7 @@ GEM
     celluloid (0.14.1)
       timers (>= 1.0.0)
     connection_pool (1.1.0)
+    daemons (1.1.9)
     faraday (0.8.7)
       multipart-post (~> 1.1)
     json (1.8.0)
@@ -26,6 +27,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  daemons
   newrelic_plugin
   redis
   sidekiq
