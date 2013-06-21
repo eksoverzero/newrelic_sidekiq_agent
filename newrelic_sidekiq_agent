@@ -72,6 +72,7 @@ module SidekiqAgent
 
         report_metric "Workers/Working", "Workers",           workers.size
         report_metric "Jobs/Pending", "Jobs",                 stats.enqueued
+        report_metric "Jobs/Processed", "Jobs",               stats.processed
         report_metric "Jobs/Rate/Processed", "Jobs/Second",   @processed.process(stats.processed)
         report_metric "Jobs/Rate/Failed", "Jobs/Second",      @total_failed.process(stats.failed)
         report_metric "Queues", "Queues",                     stats.queues.size
