@@ -1,5 +1,13 @@
 ## New Relic Sidekiq Plugin
 
+Monitors Sidekiq, a library for processing background jobs, reporting the following data for multiple specified instances:
+
+  - Number of working workers
+  - Pending jobs number
+  - Total failed jobs number
+  - Number of workers
+  - Number of processed jobs
+  - Queues and the enqueued count
 
 ### Requirements
 
@@ -9,9 +17,7 @@ Plugin should work on any generic Unix environment with the following
 software components installed:
 
   - Ruby (>= 1.8.7)
-
   - bundler for Ruby: https://github.com/carlhuda/bundler
-
   - Sidekiq
 
 

@@ -12,11 +12,13 @@
 # account.
 #
 #
+# Redis connection string: 'redis://user:password@hostname:port:db'
+
 newrelic:
   #
   # Update with your New Relic account license key:
   #
-  license_key: 'YOUR_LICENSE_KEY_HERE'
+  license_key: "YOUR_LICENSE_KEY_HERE"
   #
   # Set to '1' for verbose output, remove for normal output.
   # All output goes to stdout/stderr.
@@ -26,8 +28,12 @@ newrelic:
 # Agent Configuration:
 #
 agents:
-  sidekiq:
-    # Redis connection string: 'redis://user:password@hostname:port:db'
-    redis: redis://localhost:6379
-    # Resque namespace
-    namespace:
+  sidekiq_status_agent:
+    -
+      instance_name: "App name"
+      uri: "redis://localhost:6379"
+      namespace: "namespace"
+    -
+      instance_name: "App name"
+      uri: "redis://localhost:6379"
+      namespace: "namespace"
