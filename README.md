@@ -50,3 +50,18 @@ and stop it with
 
   ./newrelic_sidekiq_agent.daemon stop
 
+### Using Monit to keep the Agent running
+
+On Ubuntu: `sudo apt-get install monit`
+
+Example config file:
+
+```
+# /etc/monit/conf.d/newrelic_memcached_agent.conf
+check process newrelic_memcached_agent
+  with pidfile /home/ubuntu/newrelic_memacached_agent/newrelic_memcached_agent.pid
+  start program = "/bin/su - ubuntu -c '/home/ubuntu/newrelic_memcached_agent/newrelic_memcached_agent.daemon start'" with timeout 90 seconds
+  stop program = "/bin/su - ubuntu -c '/home/ubuntu/newrelic_memcached_agent/newrelic_memcached_agent.daemon stop'" with timeout 90 seconds
+  if totalmem is greater than 250 MB for 2 cycles then restart
+  group newrelic_agent
+```
