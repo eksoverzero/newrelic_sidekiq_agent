@@ -44,6 +44,7 @@ module SidekiqStatusAgent
 
         stats.queues.each do |name, enqueued|
           report_metric "Queues/#{name}", "Enqueued", enqueued
+          report_metric "Queues/#{name}", "Latency", Sidekiq::Queue.new(name).latency
         end
 
       rescue Redis::TimeoutError
