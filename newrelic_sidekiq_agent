@@ -13,7 +13,7 @@ module SidekiqStatusAgent
 
     agent_guid "com.secondimpression.newrelic-sidekiq-agent"
     agent_config_options :instance_name, :uri, :namespace
-    agent_version '0.1.0'
+    agent_version '1.0.0'
     agent_human_labels('Sidekiq') { instance_name }
 
     def setup_metrics
