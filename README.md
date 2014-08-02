@@ -40,15 +40,21 @@ user interface shortly after starting.
 
 Plugin can also be started as a daemon using the following command:
 
-  ./newrelic_sidekiq_agent.daemon start
+```
+./newrelic_sidekiq_agent.daemon start
+```
 
 In this case you can check its status by running
 
-  ./newrelic_sidekiq_agent.daemon status
+```
+./newrelic_sidekiq_agent.daemon status
+```
 
 and stop it with
 
-  ./newrelic_sidekiq_agent.daemon stop
+```
+./newrelic_sidekiq_agent.daemon stop
+```
 
 ### Using Monit to keep the Agent running
 
