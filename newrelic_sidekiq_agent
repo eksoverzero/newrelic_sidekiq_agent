@@ -40,6 +40,7 @@ module SidekiqStatusAgent
         report_metric "Jobs/Rate/Processed", "Jobs/Second",   @processed.process(stats.processed)
         report_metric "Jobs/Rate/Failed", "Jobs/Second",      @total_failed.process(stats.failed)
         report_metric "Jobs/Failed", "Jobs",                  stats.failed || 0
+        report_metric 'Jobs/Scheduled',      'Jobs',     stats.scheduled_size || 0
 
         stats.queues.each do |name, enqueued|
           report_metric "Queues/#{name}", "Enqueued", enqueued
