@@ -22,6 +22,6 @@ newrelic:
 agents:
   sidekiq:
     -
-      instance_name: "App name"
-      uri: "redis://localhost:6379"
-      namespace: "namespace"
+      name: 'App name'
+      uri: 'redis://localhost:6379'
+      namespace: 'namespace'

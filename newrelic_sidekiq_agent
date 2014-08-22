@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require "rubygems"
-require "bundler/setup"
-require "newrelic_plugin"
+require 'rubygems'
+require 'bundler/setup'
+require 'newrelic_plugin'
 
 require 'sidekiq'
 require 'sidekiq/api'
@@ -11,27 +11,27 @@ require 'redis'
 module SidekiqStatusAgent
   class Agent < NewRelic::Plugin::Agent::Base
 
-    agent_config_options :instance_name, :uri, :namespace
     agent_guid 'com.eksoverzero.newrelic-sidekiq-agent'
+    agent_config_options :name, :uri, :namespace
     agent_version '1.0.0'
-    agent_human_labels('Sidekiq') { instance_name }
+    agent_human_labels('Sidekiq') { name }
 
     def setup_metrics
-      @total_failed = NewRelic::Processor::EpochCounter.new
-      @processed    = NewRelic::Processor::EpochCounter.new
+      @jobs_failed    = NewRelic::Processor::EpochCounter.new
+      @jobs_processed = NewRelic::Processor::EpochCounter.new
     end
 
     def poll_cycle
       if uri.nil?
-        raise "Redis connection URL missing"
+        raise 'Redis connection URL missing'
       end
 
       Sidekiq.configure_client do |config|
-        config.redis = { :url => uri, :namespace => namespace }
+        config.redis = { url: uri, namespace: namespace }
       end
 
       begin
-        stats = Sidekiq::Stats.new
+        stats   = Sidekiq::Stats.new
         workers = Sidekiq::Workers.new
 
         report_metric 'Workers/Working',     'Workers',  workers.size || 0
@@ -59,7 +59,7 @@ module SidekiqStatusAgent
   end
 
   NewRelic::Plugin::Config.config_file = File.dirname(__FILE__) + '/config/newrelic_plugin.yml'
-  NewRelic::Plugin::Setup.install_agent :sidekiq_status_agent, self
+  NewRelic::Plugin::Setup.install_agent :sidekiq, self
 
   NewRelic::Plugin::Run.setup_and_run
 end
