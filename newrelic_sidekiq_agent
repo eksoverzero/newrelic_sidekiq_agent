@@ -8,7 +8,7 @@ require 'sidekiq'
 require 'sidekiq/api'
 require 'redis'
 
-module SidekiqStatusAgent
+module NewRelic::Sidekiq
   class Agent < NewRelic::Plugin::Agent::Base
 
     agent_guid 'com.eksoverzero.newrelic-sidekiq-agent'
