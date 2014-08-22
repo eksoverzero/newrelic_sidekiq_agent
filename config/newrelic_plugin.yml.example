@@ -20,7 +20,7 @@ newrelic:
   #  password:
 
 agents:
-  sidekiq_status_agent:
+  sidekiq:
     -
       instance_name: "App name"
       uri: "redis://localhost:6379"
