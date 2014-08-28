@@ -9,6 +9,7 @@ Monitors Sidekiq, a library for processing background jobs, reporting the follow
   - Number of processed jobs
   - Queues and the enqueued count
 
+
 ### Requirements
 
 In order to use this plugin, you must have an active New Relic account.
@@ -16,23 +17,25 @@ In order to use this plugin, you must have an active New Relic account.
 Plugin should work on any generic Unix environment with the following
 software components installed:
 
-  - Ruby (>= 1.8.7)
-  - bundler for Ruby: https://github.com/carlhuda/bundler
-  - Sidekiq
+- Ruby (>= 1.8.7)
+- bundler for Ruby: https://github.com/carlhuda/bundler
+- Sidekiq
 
 
 ### Instructions for running the Sidekiq plugin agent
 
 1. run `bundle install` to install required gems
 2. Copy `config/newrelic_plugin.yml.example` to `config/newrelic_plugin.yml`
-3. Edit `config/newrelic_plugin.yml` and replace "YOUR_LICENSE_KEY_HERE" with your New Relic license key
+3. Edit `config/newrelic_plugin.yml` and replace 'YOUR_LICENSE_KEY_HERE' with your New Relic license key
 4. Edit the `config/newrelic_plugin.yml` file and add Redis connection string
 5. Running the plugin
 
 In order to check your configuration, you can launch the plugin
 in foreground mode, with all output going to stdout:
 
-  ./newrelic_sidekiq_agent
+```
+./newrelic_sidekiq_agent
+```
 
 Carefully check plugin's output for any possible error messages.
 In case of success, collected data should appear in the New Relic
@@ -40,28 +43,45 @@ user interface shortly after starting.
 
 Plugin can also be started as a daemon using the following command:
 
-  ./newrelic_sidekiq_agent.daemon start
+```
+./newrelic_sidekiq_agent.daemon start
+```
 
 In this case you can check its status by running
 
-  ./newrelic_sidekiq_agent.daemon status
+```
+./newrelic_sidekiq_agent.daemon status
+```
 
 and stop it with
+```
+./newrelic_sidekiq_agent.daemon stop
+```
 
-  ./newrelic_sidekiq_agent.daemon stop
-
-### Using Monit to keep the Agent running
-
-On Ubuntu: `sudo apt-get install monit`
-
-Example config file:
+### Monit example
 
 ```
-# /etc/monit/conf.d/newrelic_memcached_agent.conf
-check process newrelic_memcached_agent
-  with pidfile /home/ubuntu/newrelic_memacached_agent/newrelic_memcached_agent.pid
-  start program = "/bin/su - ubuntu -c '/home/ubuntu/newrelic_memcached_agent/newrelic_memcached_agent.daemon start'" with timeout 90 seconds
-  stop program = "/bin/su - ubuntu -c '/home/ubuntu/newrelic_memcached_agent/newrelic_memcached_agent.daemon stop'" with timeout 90 seconds
+# /etc/monit/conf.d/newrelic_sidekiq_agent.conf
+check process newrelic_sidekiq_agent
+  with pidfile /home/ubuntu/newrelic_sidekiq_agent/newrelic_sidekiq_agent.pid
+  start program = "/bin/su - ubuntu -c '/home/ubuntu/newrelic_sidekiq_agent/newrelic_sidekiq_agent.daemon start'" with timeout 90 seconds
+  stop program = "/bin/su - ubuntu -c '/home/ubuntu/newrelic_sidekiq_agent/newrelic_sidekiq_agent.daemon stop'" with timeout 90 seconds
   if totalmem is greater than 250 MB for 2 cycles then restart
   group newrelic_agent
+```
+
+### Supervisord example
+
+```
+[program:newrelic_sidekiq_agent]
+command = bash -c ./newrelic_sidekiq_agent
+directory = /home/ubuntu/newrelic_sidekiq_agent
+autostart = true
+autorestart = true
+startretries = 10
+user = ubuntu
+startsecs = 10
+redirect_stderr = true
+stdout_logfile_maxbytes = 50MB
+stopwaitsecs = 10
 ```

@@ -1,62 +1,66 @@
 #!/usr/bin/env ruby
 
-require "rubygems"
-require "bundler/setup"
-require "newrelic_plugin"
+require 'rubygems'
+require 'bundler/setup'
+require 'newrelic_plugin'
 
 require 'sidekiq'
 require 'sidekiq/api'
 require 'redis'
 
-module SidekiqStatusAgent
+module NewRelic::Sidekiq
   class Agent < NewRelic::Plugin::Agent::Base
 
-    agent_guid "com.secondimpression.newrelic-sidekiq-agent"
-    agent_config_options :instance_name, :uri, :namespace
-    agent_version '1.0.0'
-    agent_human_labels('Sidekiq') { instance_name }
+    agent_guid 'com.eksoverzero.newrelic-sidekiq-agent'
+    agent_config_options :name, :uri, :namespace
+    agent_version '1.1.0'
+    agent_human_labels('Sidekiq') { name }
 
     def setup_metrics
-      @total_failed = NewRelic::Processor::EpochCounter.new
-      @processed    = NewRelic::Processor::EpochCounter.new
+      @jobs_failed    = NewRelic::Processor::EpochCounter.new
+      @jobs_processed = NewRelic::Processor::EpochCounter.new
     end
 
     def poll_cycle
       if uri.nil?
-        raise "Redis connection URL missing"
+        raise 'Redis connection URL missing'
       end
 
       Sidekiq.configure_client do |config|
-        config.redis = { :url => uri, :namespace => namespace }
+        config.redis = { url: uri, namespace: namespace }
       end
 
       begin
-        stats = Sidekiq::Stats.new
+        stats   = Sidekiq::Stats.new
         workers = Sidekiq::Workers.new
 
-        report_metric "Workers/Working", "Workers",           workers.size
-        report_metric "Jobs/Pending", "Jobs",                 stats.enqueued
-        report_metric "Jobs/Processed", "Jobs",               stats.processed
-        report_metric "Jobs/Rate/Processed", "Jobs/Second",   @processed.process(stats.processed)
-        report_metric "Jobs/Rate/Failed", "Jobs/Second",      @total_failed.process(stats.failed)
-        report_metric "Jobs/Failed", "Jobs",                  stats.failed || 0
+        report_metric 'Workers/Working',      'Workers',  workers.size || 0
+        report_metric 'Jobs/Count/Pending',   'Jobs',     stats.enqueued || 0
+        report_metric 'Jobs/Count/Processed', 'Jobs',     stats.processed || 0
+        report_metric 'Jobs/Count/Failed',    'Jobs',     stats.failed || 0
+        report_metric 'Jobs/Count/Scheduled', 'Jobs',     stats.scheduled_size || 0
+        report_metric 'Jobs/Count/Retries',   'Jobs',     stats.retry_size || 0
+        report_metric 'Jobs/Rate/Processed',  'Jobs/sec', @jobs_processed.process(stats.processed || 0)
+        report_metric 'Jobs/Rate/Failed',     'Jobs/sec', @jobs_failed.process(stats.failed || 0)
 
         stats.queues.each do |name, enqueued|
-          report_metric "Queues/#{name}", "Enqueued", enqueued
-          report_metric "Queues/#{name}", "Latency", Sidekiq::Queue.new(name).latency
+          report_metric "Queues/#{name}", 'Enqueued',  enqueued || 0
+          report_metric "Queues/#{name}", 'Latency',   Sidekiq::Queue.new(name).latency || 0
         end
 
       rescue Redis::TimeoutError
         raise 'Redis server timeout'
       rescue  Redis::CannotConnectError, Redis::ConnectionError
         raise 'Could not connect to redis'
+      rescue Exception => e
+        raise "#{e.class}: #{e.message}"
       end
     end
 
   end
 
   NewRelic::Plugin::Config.config_file = File.dirname(__FILE__) + '/config/newrelic_plugin.yml'
-  NewRelic::Plugin::Setup.install_agent :sidekiq_status_agent, self
+  NewRelic::Plugin::Setup.install_agent :sidekiq, self
 
   NewRelic::Plugin::Run.setup_and_run
 end
