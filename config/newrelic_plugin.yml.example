@@ -24,4 +24,5 @@ agents:
     -
       name: 'App name'
       uri: 'redis://localhost:6379'
+      password: 'password'
       namespace: 'namespace'
