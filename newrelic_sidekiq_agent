@@ -13,7 +13,7 @@ module NewRelic::Sidekiq
 
     agent_guid 'com.eksoverzero.newrelic-sidekiq-agent'
     agent_config_options :name, :uri, :password, :namespace
-    agent_version '1.1.0'
+    agent_version '1.1.1'
     agent_human_labels('Sidekiq') { name }
 
     def setup_metrics
