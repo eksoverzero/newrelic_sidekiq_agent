@@ -12,8 +12,8 @@ module NewRelic::Sidekiq
   class Agent < NewRelic::Plugin::Agent::Base
 
     agent_guid 'com.eksoverzero.newrelic-sidekiq-agent'
-    agent_config_options :name, :uri, :namespace
-    agent_version '1.1.0'
+    agent_config_options :name, :uri, :password, :namespace
+    agent_version '1.1.1'
     agent_human_labels('Sidekiq') { name }
 
     def setup_metrics
@@ -27,7 +27,7 @@ module NewRelic::Sidekiq
       end
 
       Sidekiq.configure_client do |config|
-        config.redis = { url: uri, namespace: namespace }
+        config.redis = { url: uri, password: password, namespace: namespace }
       end
 
       begin
