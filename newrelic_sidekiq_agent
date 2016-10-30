@@ -16,45 +16,49 @@ module NewRelic::Sidekiq
     agent_version '1.1.1'
     agent_human_labels('Sidekiq') { name }
 
+    attr_reader :sidekiq_stats, :sidekiq_workers
+
+    def initialize(context, options = {})
+      raise ArgumentError, "Redis connection URL missing" if options[:uri].nil?
+      super
+      setup_sidekiq
+    end
+
     def setup_metrics
       @jobs_failed    = NewRelic::Processor::EpochCounter.new
       @jobs_processed = NewRelic::Processor::EpochCounter.new
     end
 
+    def setup_sidekiq
+      redis_configuration = { url: uri }
+      redis_configuration.merge!(password: password) if password
+      redis_configuration.merge!(namespace: namespace) if namespace
+      Sidekiq.configure_client { |config| config.redis = redis_configuration }
+      @sidekiq_stats   = Sidekiq::Stats.new
+      @sidekiq_workers = Sidekiq::Workers.new
+    end
+
     def poll_cycle
-      if uri.nil?
-        raise 'Redis connection URL missing'
+      report_metric 'Workers/Working',      'Workers',  sidekiq_workers.size || 0
+      report_metric 'Jobs/Count/Pending',   'Jobs',     sidekiq_stats.enqueued || 0
+      report_metric 'Jobs/Count/Processed', 'Jobs',     sidekiq_stats.processed || 0
+      report_metric 'Jobs/Count/Failed',    'Jobs',     sidekiq_stats.failed || 0
+      report_metric 'Jobs/Count/Scheduled', 'Jobs',     sidekiq_stats.scheduled_size || 0
+      report_metric 'Jobs/Count/Retries',   'Jobs',     sidekiq_stats.retry_size || 0
+      report_metric 'Jobs/Rate/Processed',  'Jobs/sec', @jobs_processed.process(stats.processed || 0)
+      report_metric 'Jobs/Rate/Failed',     'Jobs/sec', @jobs_failed.process(stats.failed || 0)
+
+      stats.queues.each do |name, enqueued|
+        report_metric "Queues/#{name}", 'Enqueued',  enqueued || 0
+        report_metric "Queues/#{name}", 'Latency',   Sidekiq::Queue.new(name).latency || 0
       end
 
-      Sidekiq.configure_client do |config|
-        config.redis = { url: uri, password: password, namespace: namespace }
-      end
-
-      begin
-        stats   = Sidekiq::Stats.new
-        workers = Sidekiq::Workers.new
-
-        report_metric 'Workers/Working',      'Workers',  workers.size || 0
-        report_metric 'Jobs/Count/Pending',   'Jobs',     stats.enqueued || 0
-        report_metric 'Jobs/Count/Processed', 'Jobs',     stats.processed || 0
-        report_metric 'Jobs/Count/Failed',    'Jobs',     stats.failed || 0
-        report_metric 'Jobs/Count/Scheduled', 'Jobs',     stats.scheduled_size || 0
-        report_metric 'Jobs/Count/Retries',   'Jobs',     stats.retry_size || 0
-        report_metric 'Jobs/Rate/Processed',  'Jobs/sec', @jobs_processed.process(stats.processed || 0)
-        report_metric 'Jobs/Rate/Failed',     'Jobs/sec', @jobs_failed.process(stats.failed || 0)
-
-        stats.queues.each do |name, enqueued|
-          report_metric "Queues/#{name}", 'Enqueued',  enqueued || 0
-          report_metric "Queues/#{name}", 'Latency',   Sidekiq::Queue.new(name).latency || 0
-        end
-
-      rescue Redis::TimeoutError
-        raise 'Redis server timeout'
-      rescue  Redis::CannotConnectError, Redis::ConnectionError
-        raise 'Could not connect to redis'
-      rescue Exception => e
-        raise "#{e.class}: #{e.message}"
-      end
+    rescue Redis::TimeoutError
+      raise 'Redis server timeout'
+    rescue  Redis::CannotConnectError, Redis::ConnectionError
+      raise 'Could not connect to redis'
+    rescue Exception => e
+      raise "#{e.class}: #{e.message}"
     end
 
   end
@@ -64,3 +68,4 @@ module NewRelic::Sidekiq
 
   NewRelic::Plugin::Run.setup_and_run
 end
+
