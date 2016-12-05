@@ -11,6 +11,8 @@ GEM
     rack-protection (1.5.3)
       rack
     redis (3.3.2)
+    redis-namespace (1.5.2)
+      redis (~> 3.0, >= 3.0.4)
     sidekiq (4.2.7)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
@@ -25,6 +27,7 @@ DEPENDENCIES
   newrelic_plugin
   rack (= 1.6.5)
   redis
+  redis-namespace
   sidekiq
 
 BUNDLED WITH
