@@ -16,7 +16,7 @@ module NewRelic::Sidekiq
     agent_version '1.1.1'
     agent_human_labels('Sidekiq') { name }
 
-    attr_reader :sidekiq_stats, :sidekiq_workers
+    attr_reader :sidekiq_workers
 
     def initialize(context, options = {})
       raise ArgumentError, "Redis connection URL missing" if options[:uri].nil?
@@ -34,19 +34,19 @@ module NewRelic::Sidekiq
       redis_configuration.merge!(password: password) if password
       redis_configuration.merge!(namespace: namespace) if namespace
       Sidekiq.configure_client { |config| config.redis = redis_configuration }
-      @sidekiq_stats   = Sidekiq::Stats.new
       @sidekiq_workers = Sidekiq::Workers.new
     end
 
     def poll_cycle
+      sidekiq_stats   = Sidekiq::Stats.new
       report_metric 'Workers/Working',      'Workers',  sidekiq_workers.size || 0
       report_metric 'Jobs/Count/Pending',   'Jobs',     sidekiq_stats.enqueued || 0
       report_metric 'Jobs/Count/Processed', 'Jobs',     sidekiq_stats.processed || 0
       report_metric 'Jobs/Count/Failed',    'Jobs',     sidekiq_stats.failed || 0
       report_metric 'Jobs/Count/Scheduled', 'Jobs',     sidekiq_stats.scheduled_size || 0
       report_metric 'Jobs/Count/Retries',   'Jobs',     sidekiq_stats.retry_size || 0
-      report_metric 'Jobs/Rate/Processed',  'Jobs/sec', @jobs_processed.process(stats.processed || 0)
-      report_metric 'Jobs/Rate/Failed',     'Jobs/sec', @jobs_failed.process(stats.failed || 0)
+      report_metric 'Jobs/Rate/Processed',  'Jobs/sec', @jobs_processed.process(sidekiq_stats.processed || 0)
+      report_metric 'Jobs/Rate/Failed',     'Jobs/sec', @jobs_failed.process(sidekiq_stats.failed || 0)
 
       stats.queues.each do |name, enqueued|
         report_metric "Queues/#{name}", 'Enqueued',  enqueued || 0
